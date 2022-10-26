@@ -296,12 +296,12 @@ namespace imageprocessinghw1 {
 		/// </summary>
 		void InitializeComponent(void)
 		{
-			System::Windows::Forms::DataVisualization::Charting::ChartArea^ chartArea3 = (gcnew System::Windows::Forms::DataVisualization::Charting::ChartArea());
-			System::Windows::Forms::DataVisualization::Charting::Legend^ legend3 = (gcnew System::Windows::Forms::DataVisualization::Charting::Legend());
-			System::Windows::Forms::DataVisualization::Charting::Series^ series3 = (gcnew System::Windows::Forms::DataVisualization::Charting::Series());
-			System::Windows::Forms::DataVisualization::Charting::ChartArea^ chartArea4 = (gcnew System::Windows::Forms::DataVisualization::Charting::ChartArea());
-			System::Windows::Forms::DataVisualization::Charting::Legend^ legend4 = (gcnew System::Windows::Forms::DataVisualization::Charting::Legend());
-			System::Windows::Forms::DataVisualization::Charting::Series^ series4 = (gcnew System::Windows::Forms::DataVisualization::Charting::Series());
+			System::Windows::Forms::DataVisualization::Charting::ChartArea^ chartArea1 = (gcnew System::Windows::Forms::DataVisualization::Charting::ChartArea());
+			System::Windows::Forms::DataVisualization::Charting::Legend^ legend1 = (gcnew System::Windows::Forms::DataVisualization::Charting::Legend());
+			System::Windows::Forms::DataVisualization::Charting::Series^ series1 = (gcnew System::Windows::Forms::DataVisualization::Charting::Series());
+			System::Windows::Forms::DataVisualization::Charting::ChartArea^ chartArea2 = (gcnew System::Windows::Forms::DataVisualization::Charting::ChartArea());
+			System::Windows::Forms::DataVisualization::Charting::Legend^ legend2 = (gcnew System::Windows::Forms::DataVisualization::Charting::Legend());
+			System::Windows::Forms::DataVisualization::Charting::Series^ series2 = (gcnew System::Windows::Forms::DataVisualization::Charting::Series());
 			this->R_btn = (gcnew System::Windows::Forms::Button());
 			this->groupBox1 = (gcnew System::Windows::Forms::GroupBox());
 			this->G_btn = (gcnew System::Windows::Forms::Button());
@@ -665,6 +665,7 @@ namespace imageprocessinghw1 {
 			this->img_box1->Location = System::Drawing::Point(326, 27);
 			this->img_box1->Name = L"img_box1";
 			this->img_box1->Size = System::Drawing::Size(620, 520);
+			this->img_box1->SizeMode = System::Windows::Forms::PictureBoxSizeMode::AutoSize;
 			this->img_box1->TabIndex = 9;
 			this->img_box1->TabStop = false;
 			this->img_box1->MouseClick += gcnew System::Windows::Forms::MouseEventHandler(this, &UI::img_box1_MouseClick);
@@ -675,38 +676,39 @@ namespace imageprocessinghw1 {
 			this->img_box2->Location = System::Drawing::Point(326, 595);
 			this->img_box2->Name = L"img_box2";
 			this->img_box2->Size = System::Drawing::Size(620, 520);
+			this->img_box2->SizeMode = System::Windows::Forms::PictureBoxSizeMode::AutoSize;
 			this->img_box2->TabIndex = 10;
 			this->img_box2->TabStop = false;
 			this->img_box2->MouseClick += gcnew System::Windows::Forms::MouseEventHandler(this, &UI::img_box2_MouseClick);
 			// 
 			// chart1
 			// 
-			chartArea3->Name = L"ChartArea1";
-			this->chart1->ChartAreas->Add(chartArea3);
-			legend3->Name = L"Legend1";
-			this->chart1->Legends->Add(legend3);
+			chartArea1->Name = L"ChartArea1";
+			this->chart1->ChartAreas->Add(chartArea1);
+			legend1->Name = L"Legend1";
+			this->chart1->Legends->Add(legend1);
 			this->chart1->Location = System::Drawing::Point(990, 27);
 			this->chart1->Name = L"chart1";
-			series3->ChartArea = L"ChartArea1";
-			series3->Legend = L"Legend1";
-			series3->Name = L"Series1";
-			this->chart1->Series->Add(series3);
+			series1->ChartArea = L"ChartArea1";
+			series1->Legend = L"Legend1";
+			series1->Name = L"Series1";
+			this->chart1->Series->Add(series1);
 			this->chart1->Size = System::Drawing::Size(493, 384);
 			this->chart1->TabIndex = 11;
 			this->chart1->Text = L"chart1";
 			// 
 			// chart2
 			// 
-			chartArea4->Name = L"ChartArea1";
-			this->chart2->ChartAreas->Add(chartArea4);
-			legend4->Name = L"Legend1";
-			this->chart2->Legends->Add(legend4);
+			chartArea2->Name = L"ChartArea1";
+			this->chart2->ChartAreas->Add(chartArea2);
+			legend2->Name = L"Legend1";
+			this->chart2->Legends->Add(legend2);
 			this->chart2->Location = System::Drawing::Point(992, 463);
 			this->chart2->Name = L"chart2";
-			series4->ChartArea = L"ChartArea1";
-			series4->Legend = L"Legend1";
-			series4->Name = L"Series1";
-			this->chart2->Series->Add(series4);
+			series2->ChartArea = L"ChartArea1";
+			series2->Legend = L"Legend1";
+			series2->Name = L"Series1";
+			this->chart2->Series->Add(series2);
 			this->chart2->Size = System::Drawing::Size(493, 384);
 			this->chart2->TabIndex = 12;
 			this->chart2->Text = L"chart2";
@@ -1217,13 +1219,15 @@ private: System::Void Edge_Overlapping_bar_Scroll(System::Object^ sender, System
 private: System::Void Edge_Overlapping_btn_Click(System::Object^ sender, System::EventArgs^ e)
 {
 	if (!(img_box2->Image)) return;
+	
 	Bitmap^ origin = gcnew Bitmap(img_box2->Image);
-	Bitmap^ filtered = gcnew Bitmap(img_box2->Image);
-	last_step_img = origin;
-	median_filter(origin, filtered);
-	Bitmap^ edged = gcnew Bitmap(filtered);
-	Bitmap^ vertical = gcnew Bitmap(filtered);
-	Bitmap^ horizontal = gcnew Bitmap(filtered);
+	last_step_img = gcnew Bitmap(origin);
+	//Bitmap^ filtered = gcnew Bitmap(img_box2->Image);
+	//last_step_img = origin;
+	//median_filter(origin, filtered);
+	Bitmap^ edged = gcnew Bitmap(origin);
+	Bitmap^ vertical = gcnew Bitmap(origin);
+	Bitmap^ horizontal = gcnew Bitmap(origin);
 	combined_sobel(edged, vertical, horizontal);
 	int threshold = Edge_Overlapping_bar->Value;
 	do_thresholding(edged, threshold);
@@ -1232,8 +1236,8 @@ private: System::Void Edge_Overlapping_btn_Click(System::Object^ sender, System:
 		for (int j = 0; j < edged->Height; j++)
 		{
 			Color p = edged->GetPixel(i, j);
-			Color original = filtered->GetPixel(i, j);
-			if (p.R == 0) edged->SetPixel(i, j, Color::FromArgb(original.R, original.G, original.B));
+			Color original_p = origin->GetPixel(i, j);
+			if (p.R == 0) edged->SetPixel(i, j, Color::FromArgb(original_p.R, original_p.G, original_p.B));
 			else edged->SetPixel(i, j, Color::FromArgb(0, 255, 0));
 		}
 	}
@@ -1306,29 +1310,43 @@ private: System::Void Connected_Component_btn_Click(System::Object^ sender, Syst
 private: System::Void Image_Registration_btn_Click(System::Object^ sender, System::EventArgs^ e)
 {
 	if ((!(img_box2->Image)) || num_points1 != 4 || num_points2 != 4) return;
-	// Computing Scaling factor
-	int w1, w2, h1, h2;
-	w1 = points1[3][0] - points1[0][0];
-	w2 = points2[3][0] - points2[0][0];
-	h1 = points1[3][1] - points1[0][1];
-	h2 = points2[3][1] - points2[0][1];
-	double len1 = Math::Sqrt(Math::Pow(w1, 2) + Math::Pow(h1, 2));
-	double len2 = Math::Sqrt(Math::Pow(w2, 2) + Math::Pow(h2, 2));
+
+	double middle1[2];
+	double middle2[2];
+	middle1[0] = (double)img_box1->Image->Width / 2;
+	middle1[1] = (double)img_box1->Image->Height / 2;
+	middle2[0] = (double)img_box2->Image->Width / 2;
+	middle2[1] = (double)img_box2->Image->Height / 2;
+
+	double x1, x2, y1, y2;
+	x1 = middle1[0] - points1[0][0];
+	x2 = middle2[0] - points2[0][0];
+	y1 = middle1[1] - points1[0][1];
+	y2 = middle2[1] - points2[0][1];
+	double len1 = Math::Sqrt(Math::Pow(x1, 2) + Math::Pow(y1, 2));
+	double len2 = Math::Sqrt(Math::Pow(x2, 2) + Math::Pow(y2, 2));
 	double scale_factor = len2 / len1;
+	// Computing Scaling factor
 	// Computing Angle
-	double cos = ((w1 * w2) + (h1 * h2)) / (len1 * len2);
+	double cos = ((x1 * x2) + (y1 * y2)) / (len1 * len2);
 	double degree = Math::Acos(cos);
+	// Cross product
+	double cross_p = (x1 * y2) - (x2 * y1);
+	if (cross_p < 0) degree = 2 * Math::PI - degree;
 	double angle = degree * (180 / Math::PI);
 	// Computing difference
 	Bitmap^ origin1 = gcnew Bitmap(img_box1->Image);
 	Bitmap^ origin2 = gcnew Bitmap(img_box2->Image);
 	Bitmap^ result = gcnew Bitmap(img_box1->Image);
+
+	double cos_v = Math::Cos(degree);
+	double sin_v = Math::Sin(degree);
 	for (int y = 0; y < result->Height; y++)
 	{
 		for (int x = 0; x < result->Width; x++)
 		{
-			double new_x = ((x - origin1->Width / 2) * Math::Cos(degree) - (y - origin1->Height / 2) * Math::Sin(degree)) * scale_factor + (origin2->Width / 2);
-			double new_y = ((x - origin1->Width / 2) * Math::Sin(degree) + (y - origin1->Height / 2) * Math::Cos(degree)) * scale_factor + (origin2->Height / 2);
+			double new_x = ((x - middle1[0]) * cos_v - (y - middle1[1]) * sin_v) * scale_factor + middle2[0];
+			double new_y = ((x - middle1[0]) * sin_v + (y - middle1[1]) * cos_v) * scale_factor + middle2[1];
 			if (new_x < 0 || new_x + 1 > origin2->Width || new_y < 0 || new_y + 1 > origin2->Height)
 				result->SetPixel(x, y, Color::FromArgb(0, 0, 0));
 			else
@@ -1369,7 +1387,7 @@ private: System::Void img_box1_MouseClick(System::Object^ sender, System::Window
 	points1[num_points1][1] = y;
 	num_points1++;
 	Graphics^ g = img_box1->CreateGraphics();
-
+	 
 	g->FillEllipse(Brushes::Blue, x - 5, y - 5, 10, 10);
 	g->DrawString(Convert::ToString(num_points1), gcnew System::Drawing::Font(L"·s²Ó©úÅé", 14), Brushes::Blue, System::Drawing::PointF(x - 20, y - 20));
 }
