@@ -1,1 +1,9 @@
-﻿  image_processing_hw1.vcxproj -> D:\研究所課程\孫永年影像處理\homework\ncku_image_processing\hw1\image_processing_hw1\x64\Release\image_processing_hw1.exe
+﻿  UI.cpp
+D:\研究所課程\孫永年影像處理\homework\ncku_image_processing\hw1\image_processing_hw1\image_processing_hw1\UI.h(1064,10): warning C4244: '正在初始化': 將 'double' 轉換為 'int'，由於類型不同，可能導致資料遺失
+D:\研究所課程\孫永年影像處理\homework\ncku_image_processing\hw1\image_processing_hw1\image_processing_hw1\UI.h(1143,28): warning C4244: '=': 將 'int' 轉換為 'float'，由於類型不同，可能導致資料遺失
+D:\研究所課程\孫永年影像處理\homework\ncku_image_processing\hw1\image_processing_hw1\image_processing_hw1\UI.h(1392,147): warning C4244: '引數': 將 'int' 轉換為 'float'，由於類型不同，可能導致資料遺失
+D:\研究所課程\孫永年影像處理\homework\ncku_image_processing\hw1\image_processing_hw1\image_processing_hw1\UI.h(1392,139): warning C4244: '引數': 將 'int' 轉換為 'float'，由於類型不同，可能導致資料遺失
+D:\研究所課程\孫永年影像處理\homework\ncku_image_processing\hw1\image_processing_hw1\image_processing_hw1\UI.h(1404,146): warning C4244: '引數': 將 'int' 轉換為 'float'，由於類型不同，可能導致資料遺失
+D:\研究所課程\孫永年影像處理\homework\ncku_image_processing\hw1\image_processing_hw1\image_processing_hw1\UI.h(1404,138): warning C4244: '引數': 將 'int' 轉換為 'float'，由於類型不同，可能導致資料遺失
+D:\研究所課程\孫永年影像處理\homework\ncku_image_processing\hw1\image_processing_hw1\image_processing_hw1\UI.cpp(6,1): warning C4829: 函式 main 的參數可能不正確。請考慮 'int main(Platform::Array<Platform::String^>^ argv)'
+  image_processing_hw1.vcxproj -> D:\研究所課程\孫永年影像處理\homework\ncku_image_processing\hw1\image_processing_hw1\x64\Release\image_processing_hw1.exe
