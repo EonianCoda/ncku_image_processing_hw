@@ -2,7 +2,8 @@ import os
 import shutil
 import cv2
 import numpy as np
-from imantics import Polygons, Mask
+from utils import setup_logging
+from imantics import Mask
 def copy_file(src: str, dst: str) -> None:
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     if not os.path.exists(dst):
@@ -47,10 +48,14 @@ def mask_to_polygons(mask_path: str) -> np.ndarray:
     return normalized_points
 
 if __name__ == "__main__":
+    setup_logging()
     class_names = ['powder_uncover', 'powder_uneven', 'scratch']
+    raw_data_root = './data/raw'
+    new_data_root = './data/yolov7'
+
     for split_name in ['Train', 'Val']:
-        data_root = os.path.join('./origin_data', split_name)
-        new_data_root = os.path.join('./data', split_name)
+        data_root = os.path.join(raw_data_root, split_name)
+        new_data_root = os.path.join(new_data_root, split_name)
 
         name_idx = 0
         for cls_idx, cls in enumerate(class_names):
@@ -60,6 +65,7 @@ if __name__ == "__main__":
                 new_name = f'{name_idx}.png'
                 copy_file(os.path.join(cls_root, 'image', name), 
                         os.path.join(new_data_root, 'images', new_name))
+                        
                 mask_path = os.path.join(cls_root, 'mask', name)
 
                 yolov7_txt_path = os.path.join(new_data_root, 'labels', f"{name_idx}.txt")
