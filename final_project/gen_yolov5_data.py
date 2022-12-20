@@ -1,11 +1,13 @@
 import json
 import os
+from os.path import join
+
 import shutil
 import cv2
 from utils import setup_logging
 import logging
 from tqdm import tqdm
-
+from multiprocessing import Pool
 logger = logging.getLogger()
 def copy_file(src: str, dst: str) -> None:
     os.makedirs(os.path.dirname(dst), exist_ok=True)
@@ -15,13 +17,12 @@ def copy_file(src: str, dst: str) -> None:
 def gen_yolov5_txt(origin_h: float , 
                     origin_w: float,
                     label_file_path: str, 
-                    txt_file_name: str, 
-                    txt_file_root: str, 
+                    txt_file_path: str,
                     cls_idx: int):
     with open(label_file_path, 'r') as f:
         data = json.load(f)
 
-    os.makedirs(txt_file_root, exist_ok=True)
+    os.makedirs(os.path.dirname(txt_file_path), exist_ok=True)
     rects = [label['points'] for label in data['shapes']]
     lines = []
     for rect in rects:
@@ -37,32 +38,48 @@ def gen_yolov5_txt(origin_h: float ,
         line = [str(element) for element in line]
         line = ' '.join(line) + '\n'
         lines.append(line)
-    with open(os.path.join(txt_file_root, txt_file_name), 'w') as f:
+    with open(txt_file_path, 'w') as f:
         f.writelines(lines)
+
+def move_file_and_gen_txt(img_folder: str, 
+                        label_folder: str, 
+                        img_name: str,
+                        new_split_folder: str,
+                        new_name_idx: int,
+                        cls_idx: int):
+    raw_name = img_name.split('.')[0]
+
+    # Rename and move image
+    old_img_path = join(img_folder, img_name)
+    new_img_path = join(new_split_folder, 'images', f'{new_name_idx}.png')
+    copy_file(old_img_path, new_img_path)
+
+    # Generate label txt
+    im = cv2.imread(old_img_path)
+    h, w, c = im.shape
+    label_file_path = os.path.join(label_folder, f'{raw_name}.json')
+    txt_file_path = join(new_split_folder, 'labels', f'{new_name_idx}.txt')
+    gen_yolov5_txt(h, w, label_file_path, txt_file_path, cls_idx)
+
 
 if __name__ == '__main__':
     setup_logging()
     class_names = ['powder_uncover', 'powder_uneven', 'scratch']
-    raw_data_root = './data/raw'
+    data_root = './data/raw'
     new_data_root = './data/yolov5'
-
-    for split_name in ['Train', 'Val']:
-        data_root = os.path.join(raw_data_root, split_name)
-        new_data_root = os.path.join(new_data_root, split_name)
-
-        name_idx = 0
-        for cls_idx, cls in enumerate(class_names):
-            cls_root = os.path.join(data_root, cls)
-            for name in tqdm(os.listdir(os.path.join(cls_root, 'image'))):
-                # Rename and move image
-                new_name = f'{name_idx}.png'
-                copy_file(os.path.join(cls_root, 'image', name), 
-                        os.path.join(new_data_root, 'images', new_name))
-
-                im = cv2.imread(os.path.join(new_data_root, 'images', new_name))
-                h, w, c = im.shape
-                txt_file_name = f'{name_idx}.txt'
-                txt_file_root = os.path.join(new_data_root, 'label')
-                label_file_path = os.path.join(cls_root, 'label', name.split('.')[0] + '.json')
-                gen_yolov5_txt(h, w, label_file_path, txt_file_name, txt_file_root, cls_idx)
-                name_idx += 1
+    with Pool(6) as p:
+        for data_split in ['Train', 'Val']:
+            split_folder = join(data_root, data_split)
+            new_split_folder = join(new_data_root, data_split)
+            name_idx = 0
+            for cls_idx, cls_name in enumerate(class_names):
+                img_folder = join(split_folder, cls_name, 'image')
+                label_folder = join(split_folder, cls_name, 'label')
+                for img_name in os.listdir(img_folder):
+                    p.starmap(move_file_and_gen_txt, [(img_folder,
+                                                        label_folder,
+                                                        img_name,
+                                                        new_split_folder,
+                                                        name_idx, 
+                                                        cls_idx)])
+                    name_idx += 1
