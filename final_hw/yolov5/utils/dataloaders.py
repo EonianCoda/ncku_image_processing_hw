@@ -116,7 +116,8 @@ def create_dataloader(path,
                       quad=False,
                       prefix='',
                       shuffle=False,
-                      seed=0):
+                      seed=0,
+                      k_fold_setting=None):
     if rect and shuffle:
         LOGGER.warning('WARNING ⚠️ --rect is incompatible with DataLoader shuffle, setting shuffle=False')
         shuffle = False
@@ -133,7 +134,8 @@ def create_dataloader(path,
             stride=int(stride),
             pad=pad,
             image_weights=image_weights,
-            prefix=prefix)
+            prefix=prefix,
+            k_fold_setting=k_fold_setting)
 
     batch_size = min(batch_size, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
@@ -449,7 +451,8 @@ class LoadImagesAndLabels(Dataset):
                  stride=32,
                  pad=0.0,
                  min_items=0,
-                 prefix=''):
+                 prefix='',
+                 k_fold_setting=None):
         self.img_size = img_size
         self.augment = augment
         self.hyp = hyp
@@ -477,6 +480,12 @@ class LoadImagesAndLabels(Dataset):
                 else:
                     raise FileNotFoundError(f'{prefix}{p} does not exist')
             self.im_files = sorted(x.replace('/', os.sep) for x in f if x.split('.')[-1].lower() in IMG_FORMATS)
+            # Do cross validation
+            if k_fold_setting:
+                K, cur_fold, is_val, k_fold_seed = k_fold_setting
+                random.seed(k_fold_seed)
+                img_idx = list(range(len(self.im_files)))
+                random.shuffle(img_idx)
             # self.img_files = sorted([x for x in f if x.suffix[1:].lower() in IMG_FORMATS])  # pathlib
             assert self.im_files, f'{prefix}No images found'
         except Exception as e:

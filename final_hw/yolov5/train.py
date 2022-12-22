@@ -59,6 +59,7 @@ from utils.metrics import fitness
 from utils.plots import plot_evolve
 from utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, select_device, smart_DDP, smart_optimizer,
                                smart_resume, torch_distributed_zero_first)
+from utils.k_fold_validation import Kfold_setting
 
 LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))  # https://pytorch.org/docs/stable/elastic/run.html
 RANK = int(os.getenv('RANK', -1))
@@ -67,6 +68,8 @@ GIT_INFO = check_git_info()
 
 
 def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictionary
+    # For k-fold cross validation
+    k_fold_setting = getattr(opt, 'Kfold_setting', None) 
     save_dir, epochs, batch_size, weights, single_cls, evolve, data, cfg, resume, noval, nosave, workers, freeze = \
         Path(opt.save_dir), opt.epochs, opt.batch_size, opt.weights, opt.single_cls, opt.evolve, opt.data, opt.cfg, \
         opt.resume, opt.noval, opt.nosave, opt.workers, opt.freeze
@@ -474,6 +477,10 @@ def parse_opt(known=False):
     parser.add_argument('--bbox_interval', type=int, default=-1, help='Set bounding-box image logging interval')
     parser.add_argument('--artifact_alias', type=str, default='latest', help='Version of dataset artifact to use')
 
+    # Add For K-Fold cross-validation
+    parser.add_argument('--k-fold', type=int, default=-1)
+    parser.add_argument('--k-fold-seed', type=int, default=0)
+    
     return parser.parse_known_args()[0] if known else parser.parse_args()
 
 
@@ -627,6 +634,21 @@ def run(**kwargs):
         setattr(opt, k, v)
     main(opt)
     return opt
+
+def my_run(**kwargs):
+    # Usage: import train; train.my_run(data='coco128.yaml', imgsz=320, weights='yolov5m.pt')
+    opt = parse_opt(True)
+    for k, v in kwargs.items():
+        setattr(opt, k, v)
+
+    if opt.k_fold <= 0:
+        for cur_fold in range(opt.k_fold):
+            setattr(opt, 'Kfold_setting', Kfold_setting(opt.k_fold, cur_fold, False, opt.k_fold_seed))
+            main(opt)
+    else:
+        main(opt)
+    # return opt
+
 
 
 if __name__ == "__main__":
