@@ -69,7 +69,7 @@ GIT_INFO = check_git_info()
 
 def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictionary
     # For k-fold cross validation
-    k_fold_setting = getattr(opt, 'Kfold_setting', None) 
+    k_fold_setting = getattr(opt, 'k_fold_setting', None) 
     save_dir, epochs, batch_size, weights, single_cls, evolve, data, cfg, resume, noval, nosave, workers, freeze = \
         Path(opt.save_dir), opt.epochs, opt.batch_size, opt.weights, opt.single_cls, opt.evolve, opt.data, opt.cfg, \
         opt.resume, opt.noval, opt.nosave, opt.workers, opt.freeze
@@ -202,7 +202,8 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
                                               quad=opt.quad,
                                               prefix=colorstr('train: '),
                                               shuffle=True,
-                                              seed=opt.seed)
+                                              seed=opt.seed,
+                                              k_fold_setting=k_fold_setting)
     labels = np.concatenate(dataset.labels, 0)
     mlc = int(labels[:, 0].max())  # max label class
     assert mlc < nc, f'Label class {mlc} exceeds nc={nc} in {data}. Possible class labels are 0-{nc - 1}'
@@ -220,7 +221,8 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
                                        rank=-1,
                                        workers=workers * 2,
                                        pad=0.5,
-                                       prefix=colorstr('val: '))[0]
+                                       prefix=colorstr('val: '),
+                                       k_fold_setting=k_fold_setting)[0]
 
         if not resume:
             if not opt.noautoanchor:
@@ -640,12 +642,21 @@ def my_run(**kwargs):
     opt = parse_opt(True)
     for k, v in kwargs.items():
         setattr(opt, k, v)
-
+    # gen timestamp
+    cur_time = datetime.datetime.now()
+    timestamp = "[%d-%02d-%02d-%02d%02d]" % (cur_time.year, 
+                                            cur_time.month, 
+                                            cur_time.day, 
+                                            cur_time.hour, 
+                                            cur_time.minute)
+    origin_exp_name = opt.name
     if opt.k_fold <= 0:
         for cur_fold in range(opt.k_fold):
-            setattr(opt, 'Kfold_setting', Kfold_setting(opt.k_fold, cur_fold, False, opt.k_fold_seed))
+            setattr(opt, 'k_fold_setting', Kfold_setting(opt.k_fold, cur_fold, False, opt.k_fold_seed))
+            setattr(opt, 'name', timestamp + origin_exp_name + 'fold_{}'.format(cur_fold + 1))
             main(opt)
     else:
+        setattr(opt, 'name', timestamp + origin_exp_name)
         main(opt)
     # return opt
 

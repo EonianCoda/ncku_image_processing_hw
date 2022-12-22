@@ -480,12 +480,21 @@ class LoadImagesAndLabels(Dataset):
                 else:
                     raise FileNotFoundError(f'{prefix}{p} does not exist')
             self.im_files = sorted(x.replace('/', os.sep) for x in f if x.split('.')[-1].lower() in IMG_FORMATS)
-            # Do cross validation
-            if k_fold_setting:
+            # Split data for k-fold cross validation
+            if k_fold_setting != None:
                 K, cur_fold, is_val, k_fold_seed = k_fold_setting
                 random.seed(k_fold_seed)
                 img_idx = list(range(len(self.im_files)))
                 random.shuffle(img_idx)
+                num_data_per_fold = len(img_idx) / K
+                start_idx = int(num_data_per_fold * cur_fold)
+                end_idx = int(num_data_per_fold * (cur_fold + 1))
+                if is_val:
+                    self.im_files = self.im_files[start_idx: end_idx]
+                else:
+                    temp = self.im_files[:start_idx]
+                    temp += self.im_files[end_idx:]
+                    self.im_files = temp
             # self.img_files = sorted([x for x in f if x.suffix[1:].lower() in IMG_FORMATS])  # pathlib
             assert self.im_files, f'{prefix}No images found'
         except Exception as e:
