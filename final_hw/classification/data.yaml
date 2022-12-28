@@ -1,0 +1,5 @@
+train_root: ../data/classification/Train/images/
+train_label_file: ../data/classification/Train/labels.txt
+
+val_root: ../data/classification/Val/images/
+val_label_file: ../data/classification/Val/labels.txt
