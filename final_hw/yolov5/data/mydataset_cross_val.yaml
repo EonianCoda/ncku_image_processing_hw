@@ -1,0 +1,10 @@
+path: ../data/yolov5  # dataset root dir
+train: Train/images  # train images (relative to 'path') 128 images
+val: Train/images  # val images (relative to 'path') 128 images
+test: Val/images # test images (optional)
+
+# Classes (80 COCO classes)
+names:
+  0: powder_uncover
+  1: powder_uneven
+  2: scratch

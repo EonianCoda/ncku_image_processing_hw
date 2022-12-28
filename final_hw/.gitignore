@@ -1,5 +1,6 @@
 *.png
 *.json
-*.txt
 *.cache
 __pycache__
+data
+!yolov5/data
