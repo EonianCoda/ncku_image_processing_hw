@@ -1,4 +1,4 @@
-path: ../data/yolov5  # dataset root dir
+path: ../data/yolov5_resize  # dataset root dir
 train: Train/images  # train images (relative to 'path') 128 images
 val: Val/images  # val images (relative to 'path') 128 images
 test: Val/images # test images (optional)

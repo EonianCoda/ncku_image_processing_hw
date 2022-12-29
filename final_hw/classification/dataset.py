@@ -5,7 +5,9 @@ import torch
 import torch.nn as nn
 from torchvision.transforms import transforms
 import yaml
+import random
 from torch.utils.data import DataLoader
+
 class Transform(object):
     def __init__(self, is_train=True, img_size = (1024, 1024)):
         self.is_train = is_train
@@ -60,14 +62,13 @@ class Powder_Spreading_DataSet(Dataset):
             if index not in self.img_cache:
                 im = self._read_img(self.images[index])
                 self.img_cache[index] = im
-            sample['img'] = self.img_cache[index].clone()
+            sample['img'] = self.img_cache[index]
         else:
             sample['img'] = self._read_img(self.images[index])
         return sample
 
 def get_dataloader(data_type='train', bs:int=16, **kwargs):
-    data_type = data_type.lower()
-    is_train = (data_type == 'train')
+    is_train = (data_type.lower() == 'train')
 
     with open('./data.yaml', 'r') as f:
         data = yaml.safe_load(f)
@@ -78,6 +79,23 @@ def get_dataloader(data_type='train', bs:int=16, **kwargs):
         root, label_file = data['val_root'], data['val_label_file']
     datadset = Powder_Spreading_DataSet(root, label_file, is_train=is_train, **kwargs)
 
-    dataloader = DataLoader(datadset, batch_size=bs, num_workers=6, pin_memory=True, shuffle=is_train)
+    dataloader = DataLoader(datadset, batch_size=bs, num_workers=4, pin_memory=True, shuffle=is_train)
 
     return dataloader
+
+# class K_Fold_dataloader(object):
+#     def __init__(self, 
+#                 num_split:int = 4, 
+#                 seed=0,
+#                 **kwargs,
+#                 ) -> None:
+#         self.num_split = num_split
+#         self.seed = seed
+#         self.kwarg = kwargs
+#     def get_dataloader(self, split_idx:int, data_type='train', ):
+
+#         self.datadset = Powder_Spreading_DataSet(**self.kwargs)
+#         num_data = len(self.datadset.images)
+#         random.seed(self.seed)
+#         img_idx = list(range(len(self.im_files)))
+#         random.shuffle(img_idx)
