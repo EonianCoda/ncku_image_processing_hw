@@ -483,7 +483,7 @@ class LoadImagesAndLabels(Dataset):
             # Split data for k-fold cross validation
             if k_fold_setting != None:
                 K, cur_fold, is_val, k_fold_seed = k_fold_setting
-                random.seed(k_fold_seed)
+                random.seed(k_fold_seed + 9)
                 img_idx = list(range(len(self.im_files)))
                 random.shuffle(img_idx)
                 num_data_per_fold = len(img_idx) / K
