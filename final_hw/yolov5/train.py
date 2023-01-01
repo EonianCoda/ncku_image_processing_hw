@@ -59,7 +59,6 @@ from utils.metrics import fitness
 from utils.plots import plot_evolve
 from utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, select_device, smart_DDP, smart_optimizer,
                                smart_resume, torch_distributed_zero_first)
-from utils.k_fold_validation import Kfold_setting
 
 LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))  # https://pytorch.org/docs/stable/elastic/run.html
 RANK = int(os.getenv('RANK', -1))
@@ -68,8 +67,7 @@ GIT_INFO = check_git_info()
 
 
 def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictionary
-    # For k-fold cross validation
-    k_fold_setting = getattr(opt, 'k_fold_setting', None) 
+
     save_dir, epochs, batch_size, weights, single_cls, evolve, data, cfg, resume, noval, nosave, workers, freeze = \
         Path(opt.save_dir), opt.epochs, opt.batch_size, opt.weights, opt.single_cls, opt.evolve, opt.data, opt.cfg, \
         opt.resume, opt.noval, opt.nosave, opt.workers, opt.freeze
@@ -202,16 +200,13 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
                                               quad=opt.quad,
                                               prefix=colorstr('train: '),
                                               shuffle=True,
-                                              seed=opt.seed,
-                                              k_fold_setting=k_fold_setting)
+                                              seed=opt.seed)
     labels = np.concatenate(dataset.labels, 0)
     mlc = int(labels[:, 0].max())  # max label class
     assert mlc < nc, f'Label class {mlc} exceeds nc={nc} in {data}. Possible class labels are 0-{nc - 1}'
 
     # Process 0
     if RANK in {-1, 0}:
-        if k_fold_setting != None:
-            k_fold_setting[2] = True # set is_val to True
         val_loader = create_dataloader(val_path,
                                        imgsz,
                                        batch_size // WORLD_SIZE * 2,
@@ -223,8 +218,7 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
                                        rank=-1,
                                        workers=workers * 2,
                                        pad=0.5,
-                                       prefix=colorstr('val: '),
-                                       k_fold_setting=k_fold_setting)[0]
+                                       prefix=colorstr('val: '))[0]
 
         if not resume:
             if not opt.noautoanchor:
@@ -481,10 +475,6 @@ def parse_opt(known=False):
     parser.add_argument('--bbox_interval', type=int, default=-1, help='Set bounding-box image logging interval')
     parser.add_argument('--artifact_alias', type=str, default='latest', help='Version of dataset artifact to use')
 
-    # Add For K-Fold cross-validation
-    parser.add_argument('--k-fold', type=int, default=-1)
-    parser.add_argument('--k-fold-seed', type=int, default=0)
-    
     return parser.parse_known_args()[0] if known else parser.parse_args()
 
 
@@ -651,18 +641,17 @@ def my_run(**kwargs):
                                             cur_time.day, 
                                             cur_time.hour, 
                                             cur_time.minute)
-    origin_exp_name = opt.name
-    if opt.k_fold > 0:
-        for cur_fold in range(opt.k_fold):
-            setattr(opt, 'k_fold_setting', [opt.k_fold, cur_fold, False, opt.k_fold_seed])
-            setattr(opt, 'name', timestamp + origin_exp_name + 'fold_{}'.format(cur_fold + 1))
-            main(opt)
+    # origin_exp_name = opt.name
+    weight_name = {'yolov5s.pt':'small',
+                'yolov5m.pt':'med', 
+                'yolov5l.pt':'large',}
+    
+    if 'fold' in opt.data:
+        opt.name = timestamp + '{}_bs{}_{}_E{}_fold{}'.format(opt.imgsz, opt.batch_size, weight_name[opt.weights], opt.epochs, opt.data.split('.')[0][-1])
     else:
-        setattr(opt, 'name', timestamp + origin_exp_name)
-        main(opt)
-    # return opt
-
-
+        opt.name = timestamp + '{}_bs{}_{}_E{}'.format(opt.imgsz, opt.batch_size, weight_name[opt.weights], opt.epochs)
+    # setattr(opt, 'name', timestamp + origin_exp_name)
+    main(opt)
 
 if __name__ == "__main__":
     opt = parse_opt()

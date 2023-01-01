@@ -116,8 +116,7 @@ def create_dataloader(path,
                       quad=False,
                       prefix='',
                       shuffle=False,
-                      seed=0,
-                      k_fold_setting=None):
+                      seed=0):
     if rect and shuffle:
         LOGGER.warning('WARNING ⚠️ --rect is incompatible with DataLoader shuffle, setting shuffle=False')
         shuffle = False
@@ -134,8 +133,7 @@ def create_dataloader(path,
             stride=int(stride),
             pad=pad,
             image_weights=image_weights,
-            prefix=prefix,
-            k_fold_setting=k_fold_setting)
+            prefix=prefix)
 
     batch_size = min(batch_size, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
@@ -451,8 +449,7 @@ class LoadImagesAndLabels(Dataset):
                  stride=32,
                  pad=0.0,
                  min_items=0,
-                 prefix='',
-                 k_fold_setting=None):
+                 prefix=''):
         self.img_size = img_size
         self.augment = augment
         self.hyp = hyp
@@ -480,22 +477,6 @@ class LoadImagesAndLabels(Dataset):
                 else:
                     raise FileNotFoundError(f'{prefix}{p} does not exist')
             self.im_files = sorted(x.replace('/', os.sep) for x in f if x.split('.')[-1].lower() in IMG_FORMATS)
-            # Split data for k-fold cross validation
-            if k_fold_setting != None:
-                K, cur_fold, is_val, k_fold_seed = k_fold_setting
-                random.seed(k_fold_seed + 9)
-                img_idx = list(range(len(self.im_files)))
-                random.shuffle(img_idx)
-                num_data_per_fold = len(img_idx) / K
-                start_idx = int(num_data_per_fold * cur_fold)
-                end_idx = int(num_data_per_fold * (cur_fold + 1))
-                if is_val:
-                    self.im_files = self.im_files[start_idx: end_idx]
-                else:
-                    temp = self.im_files[:start_idx]
-                    temp += self.im_files[end_idx:]
-                    self.im_files = temp
-            # self.img_files = sorted([x for x in f if x.suffix[1:].lower() in IMG_FORMATS])  # pathlib
             assert self.im_files, f'{prefix}No images found'
         except Exception as e:
             raise Exception(f'{prefix}Error loading data from {path}: {e}\n{HELP_URL}') from e

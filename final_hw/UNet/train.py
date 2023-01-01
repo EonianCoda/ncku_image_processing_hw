@@ -52,7 +52,7 @@ def train_model(
     # 3. Create data loaders
     loader_args = dict(batch_size=batch_size, num_workers=os.cpu_count(), pin_memory=True)
     train_loader = DataLoader(train_set, shuffle=True, **loader_args)
-    val_loader = DataLoader(val_set, shuffle=False, drop_last=True, **loader_args)
+    val_loader = DataLoader(val_set, shuffle=False, **loader_args)
 
     # (Initialize logging)
     experiment = wandb.init(project='U-Net', resume='allow', anonymous='must')
@@ -127,36 +127,34 @@ def train_model(
                 pbar.set_postfix(**{'loss (batch)': loss.item()})
 
                 # Evaluation round
-                division_step = (n_train // (5 * batch_size))
-                if division_step > 0:
-                    if global_step % division_step == 0:
-                        histograms = {}
-                        for tag, value in model.named_parameters():
-                            tag = tag.replace('/', '.')
-                            if not torch.isinf(value).any():
-                                histograms['Weights/' + tag] = wandb.Histogram(value.data.cpu())
-                            if not torch.isinf(value.grad).any():
-                                histograms['Gradients/' + tag] = wandb.Histogram(value.grad.data.cpu())
+               
+        histograms = {}
+        for tag, value in model.named_parameters():
+            tag = tag.replace('/', '.')
+            if not torch.isinf(value).any():
+                histograms['Weights/' + tag] = wandb.Histogram(value.data.cpu())
+            if not torch.isinf(value.grad).any():
+                histograms['Gradients/' + tag] = wandb.Histogram(value.grad.data.cpu())
 
-                        val_score = evaluate(model, val_loader, device, amp)
-                        scheduler.step(val_score)
+        val_score = evaluate(model, val_loader, device, amp)
+        scheduler.step(val_score)
 
-                        logging.info('Validation Dice score: {}'.format(val_score))
-                        try:
-                            experiment.log({
-                                'learning rate': optimizer.param_groups[0]['lr'],
-                                'validation Dice': val_score,
-                                'images': wandb.Image(images[0].cpu()),
-                                'masks': {
-                                    'true': wandb.Image(true_masks[0].float().cpu()),
-                                    'pred': wandb.Image(masks_pred.argmax(dim=1)[0].float().cpu()),
-                                },
-                                'step': global_step,
-                                'epoch': epoch,
-                                **histograms
-                            })
-                        except:
-                            pass
+        logging.info('Validation Dice score: {}'.format(val_score))
+        try:
+            experiment.log({
+                'learning rate': optimizer.param_groups[0]['lr'],
+                'validation Dice': val_score,
+                'images': wandb.Image(images[0].cpu()),
+                'masks': {
+                    'true': wandb.Image(true_masks[0].float().cpu()),
+                    'pred': wandb.Image(masks_pred.argmax(dim=1)[0].float().cpu()),
+                },
+                'step': global_step,
+                'epoch': epoch,
+                **histograms
+            })
+        except:
+            pass
 
         if save_checkpoint:
             Path(dir_checkpoint).mkdir(parents=True, exist_ok=True)

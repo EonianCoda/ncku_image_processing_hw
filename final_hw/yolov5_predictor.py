@@ -1,3 +1,5 @@
+import sys
+sys.path.extend(['./yolov5', './yolov5/utils'])
 from yolov5.utils.general import non_max_suppression, scale_boxes
 from yolov5.utils.augmentations import letterbox
 from yolov5.models.experimental import attempt_load
@@ -138,12 +140,12 @@ if __name__ == '__main__':
     import os
     os.chdir('./yolov5')
 
-    input_root = '../data/yolov5/'
-    output_root = '../data/unet/'
+    input_root = '../data/fold1/'
+    output_root = '../data/unet_fold1/'
     resize_size = (320, 320)
 
     img_size = (960, 960)
-    weight_path = './runs/train/[2022-12-29-1549]960_bs16_med_E400/weights/best.pt'
+    weight_path = './runs/train/[2023-01-01-1503]960_bs16_med_E300_fold1/weights/best.pt'
     iou_thres = 0.6
     conf_thres = 0.1
     predictor = Yolov5_Predictor(weight_path= weight_path,
@@ -182,6 +184,3 @@ if __name__ == '__main__':
                 recover_lines.append(new_name + ',' + box_line + '\n')
             with open(join(output_split_folder, 'labels', '{}.txt'.format(raw_name)), 'w') as f:
                 f.writelines(recover_lines)
-
-
-    

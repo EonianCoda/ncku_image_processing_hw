@@ -1,8 +1,0 @@
-path: ../data/yolov5_uncover_bg  # dataset root dir
-train: Train/images  # train images (relative to 'path') 128 images
-val: Val/images  # val images (relative to 'path') 128 images
-test: Val/images # test images (optional)
-
-# Classes (80 COCO classes)
-names:
-  0: powder_uncover

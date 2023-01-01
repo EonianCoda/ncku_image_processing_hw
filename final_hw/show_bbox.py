@@ -8,21 +8,21 @@ import numpy as np
 if __name__ == '__main__':
     class_names = ['powder_uncover', 'powder_uneven', 'scratch']
     data_root = './data/raw'
-    new_data_root = './data/yolov5'
+    # new_data_root = './data/yolov5'
     data_split = 'Train'
     split_folder = join(data_root, data_split)
-    new_split_folder = join(new_data_root, data_split)
+    # new_split_folder = join(new_data_root, data_split)
     name_idx = 0
     for cls_idx, cls_name in enumerate(class_names):
         img_folder = join(split_folder, cls_name, 'image')
-        mask_folder = join(split_folder, cls_name, 'mask')
+        # mask_folder = join(split_folder, cls_name, 'mask')
         label_folder = join(split_folder, cls_name, 'label')
         for i, img_name in enumerate(os.listdir(img_folder)):
             if i == 5:
                 break
             raw_name = img_name.split('.')[0]
             rgb_im = cv2.imread(join(img_folder, img_name))
-            mask_im = cv2.imread(join(mask_folder, img_name))
+            # mask_im = cv2.imread(join(mask_folder, img_name))
             labels = json.loads(open(join(label_folder, f'{raw_name}.json')).read())
             rects = [label['points'] for label in labels['shapes']]
 
