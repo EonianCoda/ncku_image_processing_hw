@@ -51,7 +51,7 @@ class Yolov5_Predictor(object):
         self.iou_thres = iou_thres
         self.max_det = max_det
         self.img_size = img_size
-        self.crop_expand = {'scratch':100,
+        self.crop_expand = {'scratch':10,
                             'powder_uneven':80,
                             'powder_uncover':80,}
     def predict(self, im0: Union[str, np.ndarray]):
@@ -98,6 +98,7 @@ class Yolov5_Predictor(object):
         if bboxes != None:
             total_area = im_h * im_w
             new_mask = np.zeros((im_h, im_w), dtype=np.uint8)
+            cls_idx = -1
             for box in bboxes:
                 cls_idx, x1, y1, x2, y2 = box
                 cls_name = self.classes_names[cls_idx]
@@ -132,9 +133,9 @@ class Yolov5_Predictor(object):
                     box_infos.append(box_info)
         
         if mask_path != None:
-            return crop_imgs, crop_masks, box_infos
+            return crop_imgs, crop_masks, box_infos, cls_idx
         else:
-            return crop_imgs, box_infos
+            return crop_imgs, box_infos, cls_idx
 
 if __name__ == '__main__':
     import os
@@ -168,7 +169,7 @@ if __name__ == '__main__':
             img_path = join(input_img_folder, img_name)
             mask_path = join(input_mask_folder, img_name)
 
-            crop_imgs, crop_masks, box_infos = predictor.predict_crop(img_path, mask_path)
+            crop_imgs, crop_masks, box_infos, cls_idx = predictor.predict_crop(img_path, mask_path)
             recover_lines = []
             # Write
             for crop_idx, (img, mask, box) in enumerate(zip(crop_imgs, crop_masks, box_infos)):
