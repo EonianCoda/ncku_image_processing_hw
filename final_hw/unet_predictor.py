@@ -1,19 +1,10 @@
 from PIL import Image
 import numpy as np
-import cv2
 import torch
 import torch.nn.functional as F
+from typing import Union
 from UNet.utils.data_loading import BasicDataset
 from UNet.unet import UNet
-from typing import Union
-def load_img(img_path: str, binary=False):
-    if not binary:
-        return cv2.imread(img_path)
-    else:
-        im = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
-        # Binarize
-        _ , im = cv2.threshold(im, 0, 255, cv2.THRESH_BINARY)
-        return im
 
 class UNet_Predictor(object):
     def __init__(self, weight_path:str,
@@ -39,7 +30,6 @@ class UNet_Predictor(object):
             im0 = Image.open(im0)
         else:
             full_img = Image.fromarray(im0)
-        # full_img = Image.open(img_path)
 
         self.model.eval()
         img = torch.from_numpy(BasicDataset.preprocess(None, 

@@ -7,16 +7,7 @@ import torch
 import cv2
 import numpy as np
 from typing import Union, List
-from os.path import join
-
-def load_img(img_path: str):
-    return cv2.imread(img_path)
-
-def load_binary_img(img_path: str):
-    im = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
-    # Binarize
-    _ , im = cv2.threshold(im, 0, 255, cv2.THRESH_BINARY)
-    return im
+from predictor_utils import load_img
 
 def normalize_coord(coord: List[Union[int, float]], 
                     w: int, 
@@ -54,11 +45,8 @@ class Yolov5_Predictor(object):
         self.crop_expand = {'scratch':10,
                             'powder_uneven':80,
                             'powder_uncover':80,}
-    def predict(self, im0: Union[str, np.ndarray]):
-        if isinstance(im0, str):
-            im0 = load_img(im0)
-        # im0 = cv2.imread(img_path)
-        # Processing image
+
+    def _process_img(self, im0):
         im = letterbox(im0, self.img_size, stride=self.stride)[0]  # padded resize
         im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
         im = np.ascontiguousarray(im)
@@ -66,19 +54,27 @@ class Yolov5_Predictor(object):
         im = im.unsqueeze(dim=0) # add batch_size dimension
         im = im.float()  # uint8 to fp32
         im /= 255
+        return im
+
+    def predict(self, im0: Union[str, np.ndarray]):
+        if isinstance(im0, str):
+            im0 = load_img(im0)
+        # Processing image
+        im = self._process_img(im0)
         # Predict
-        pred = self.model(im)
+        self.model.eval()
+        with torch.no_grad():
+            pred = self.model(im)
         # Process predictions
         pred = non_max_suppression(pred, self.conf_thres, self.iou_thres, max_det=self.max_det)
         det = pred[0]
         if len(det):
             bboxs = []
             det[:, :4] = scale_boxes(im.shape[2:], det[:, :4], im0.shape).round()
-            gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]
             for *xyxy, conf, cls in reversed(det):
-                # xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
-                bboxs.append([int(cls), *xyxy]) # [cls, x1, y1, x2, y2]
-            return bboxs
+                x1, y1, x2, y2 = [float(c) for c in xyxy]
+                bboxs.append([x1, y1, x2, y2, float(conf), int(cls)]) # [x1, y1, x2, y2, conf, cls]
+            return np.array(bboxs)
         else:
             return None
 
@@ -94,13 +90,13 @@ class Yolov5_Predictor(object):
 
         crop_imgs = []
         box_infos = []
+        crop_masks = []
 
-        if bboxes != None:
+        if isinstance(bboxes, np.ndarray):
             total_area = im_h * im_w
             new_mask = np.zeros((im_h, im_w), dtype=np.uint8)
-            cls_idx = -1
             for box in bboxes:
-                cls_idx, x1, y1, x2, y2 = box
+                x1, y1, x2, y2, conf, cls_idx = box
                 cls_name = self.classes_names[cls_idx]
                 expand = self.crop_expand[cls_name]
                 # If the bbox is too small, then expand most.
@@ -113,7 +109,7 @@ class Yolov5_Predictor(object):
             if num_labels >= 1:
                
                 if mask_path != None:
-                    mask = load_binary_img(mask_path)
+                    mask = load_img(mask_path, binary=True)
                     crop_masks = []
                 # Converted [x1, y1, w, h] to [x1, y1, x2, y2]
                 stats[:,2] += stats[:,0]
@@ -129,59 +125,10 @@ class Yolov5_Predictor(object):
                     if mask_path != None:
                         crop_mask = mask[y1:y2, x1:x2]
                         crop_masks.append(crop_mask)
-                    box_info = (box_w, box_h, x1, y1, x2, y2)
+                    box_info = [box_w, box_h, x1, y1, x2, y2]
                     box_infos.append(box_info)
-        
+        box_infos = np.array(box_infos)
         if mask_path != None:
-            return crop_imgs, crop_masks, box_infos, cls_idx
+            return bboxes, crop_imgs, box_infos, crop_masks
         else:
-            return crop_imgs, box_infos, cls_idx
-
-if __name__ == '__main__':
-    import os
-    os.chdir('./yolov5')
-
-    input_root = '../data/fold1/'
-    output_root = '../data/unet_fold1/'
-    resize_size = (320, 320)
-
-    img_size = (960, 960)
-    weight_path = './runs/train/[2023-01-01-1503]960_bs16_med_E300_fold1/weights/best.pt'
-    iou_thres = 0.6
-    conf_thres = 0.1
-    predictor = Yolov5_Predictor(weight_path= weight_path,
-                                iou_thres=iou_thres,
-                                conf_thres=conf_thres,
-                                img_size=img_size)
-            
-    for split in ['Train', 'Val']:
-        input_split_folder = join(input_root, split)
-        output_split_folder = join(output_root, split)
-
-        input_img_folder = join(input_split_folder, 'images')
-        input_mask_folder = join(input_split_folder, 'masks')
-
-        os.makedirs(join(output_split_folder, 'images'), exist_ok=True)
-        os.makedirs(join(output_split_folder, 'masks'), exist_ok=True)
-        os.makedirs(join(output_split_folder, 'labels'), exist_ok=True)
-        for img_name in os.listdir(input_img_folder):
-            raw_name = img_name.split('.')[0]
-            img_path = join(input_img_folder, img_name)
-            mask_path = join(input_mask_folder, img_name)
-
-            crop_imgs, crop_masks, box_infos, cls_idx = predictor.predict_crop(img_path, mask_path)
-            recover_lines = []
-            # Write
-            for crop_idx, (img, mask, box) in enumerate(zip(crop_imgs, crop_masks, box_infos)):
-                img = cv2.resize(img, resize_size)
-                mask = cv2.resize(mask, resize_size, interpolation=cv2.INTER_NEAREST)
-
-                new_name = '{}_{}.png'.format(raw_name, crop_idx)
-
-                cv2.imwrite(join(output_split_folder, 'images', new_name), img)
-                cv2.imwrite(join(output_split_folder, 'masks', new_name), mask)
-                # (box_w, box_h, x1, y1, x2, y2) for recover mask
-                box_line = ','.join([str(c) for c in box])
-                recover_lines.append(new_name + ',' + box_line + '\n')
-            with open(join(output_split_folder, 'labels', '{}.txt'.format(raw_name)), 'w') as f:
-                f.writelines(recover_lines)
+            return bboxes, crop_imgs, box_infos

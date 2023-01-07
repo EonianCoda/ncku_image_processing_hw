@@ -46,7 +46,7 @@ def train_model(
     train_mask_folder = join(data_root, 'Train', 'masks')
     val_img_folder = join(data_root, 'Val', 'images')
     val_mask_folder = join(data_root, 'Val', 'masks')
-    dir_checkpoint = Path('./ckp_fold{}'.format(k_fold))
+    dir_checkpoint = Path('./ckp_fold{}_BN'.format(k_fold))
 
     train_set = BasicDataset(train_img_folder, train_mask_folder, img_scale)
     val_set = BasicDataset(val_img_folder, val_mask_folder, img_scale)
@@ -175,7 +175,7 @@ def train_model(
 
 def get_args():
     parser = argparse.ArgumentParser(description='Train the UNet on images and target masks')
-    parser.add_argument('--epochs', '-e', metavar='E', type=int, default=40, help='Number of epochs')
+    parser.add_argument('--epochs', '-e', metavar='E', type=int, default=60, help='Number of epochs')
     parser.add_argument('--batch-size', '-b', dest='batch_size', metavar='B', type=int, default=16, help='Batch size')
     parser.add_argument('--learning-rate', '-l', metavar='LR', type=float, default=1e-5,
                         help='Learning rate', dest='lr')
