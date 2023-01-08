@@ -472,7 +472,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.stat['pred_img'].append(pred_img_path)
         self.stat['pred_mask'].append(pred_mask_path)
         # Store the result of prediction
-        cv2.imwrite(pred_img_path, cv2.resize(data['pred_img'], (350, 350)))
+
+        
+        cv2.imwrite(pred_img_path, cv2.cvtColor(cv2.resize(data['pred_img'], (350, 350)), cv2.COLOR_BGR2RGB))
         cv2.imwrite(pred_mask_path, cv2.resize(data['pred_mask'], (350, 350), cv2.INTER_NEAREST))
 
         ### Update Folder(Mean) ###

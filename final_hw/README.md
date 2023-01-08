@@ -1,14 +1,9 @@
 ## Training
 
-# Working Log and TODO List
-### General
-- [] K-Fold cross validation
+# 安裝相依函式庫
+1. pip install -r requirements.txt
+2. cd yolov5
+3. pip install -r requirements.txt
 
-### Stage 1
-- [] 實驗加入背景圖像
-- [] 完成Inference
-### Stage 2
-- [] 選定模型並實作
-
-2022/12/22(Thu.)
-1. 進行K-Fold validation
+# 執行
+python main.py
