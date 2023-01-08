@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 from typing import Union, List
 from predictor_utils import load_img
-
+from constants import CLS_NAMES
 def normalize_coord(coord: List[Union[int, float]], 
                     w: int, 
                     h: int, 
@@ -92,6 +92,25 @@ class Yolov5_Predictor(object):
         box_infos = []
         crop_masks = []
 
+        pred_cls_idx = int(np.argmax(np.bincount(np.array(bboxes[:, 5].astype(np.int64)), minlength = 3)))
+        pred_cls_name = CLS_NAMES[pred_cls_idx]
+
+        if pred_cls_name == 'powder_uneven' or pred_cls_name == 'scratch':
+            new_bboxes = []
+            for box in bboxes:
+                x1, y1, x2, y2, conf, cls_idx = box
+                box_w, box_h = (x2 - x1), (y2 - y1)
+                h_ratio = box_h / im_h
+                w_ratio = box_w / im_w
+                if h_ratio >= 0.95:
+                    y1 = 0
+                    y2 = im_h
+                if w_ratio >= 0.95:
+                    x1 = 0
+                    x2 = im_w
+                new_bboxes.append([x1, y1, x2, y2, conf, cls_idx])
+            bboxes = np.array(new_bboxes)
+
         if isinstance(bboxes, np.ndarray):
             total_area = im_h * im_w
             new_mask = np.zeros((im_h, im_w), dtype=np.uint8)
@@ -119,6 +138,7 @@ class Yolov5_Predictor(object):
                     x1, y1, x2, y2, area = stats[i]
                     x1, y1, x2, y2 = normalize_coord([x1, y1, x2, y2], im_w, im_h)
                     box_w, box_h = (x2 - x1), (y2 - y1)
+
                     # Crop origin image and mask image
                     crop_im = im[y1:y2, x1:x2, ...]
                     crop_imgs.append(crop_im)

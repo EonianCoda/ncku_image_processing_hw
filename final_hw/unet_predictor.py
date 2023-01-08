@@ -11,7 +11,7 @@ class UNet_Predictor(object):
                         scale = 0.5,
                         threshold=0.5,
                         n_classes=1,
-                        bilinear=False,
+                        bilinear=True,
                         device='cpu') -> None:
         self.device = torch.device(device) if isinstance(device, str) else device
         self.n_classes = n_classes
