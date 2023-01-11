@@ -277,6 +277,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.ap50_powder_uneven_label.setText('')
         self.ui.ap50_powder_uncover_label.setText('')
         self.ui.map50_label.setText('')
+        self.ui.iou_avg_label.setText('')
         
         self.ui.dice_powder_uncover_label.setText('')
         self.ui.dice_powder_uneven_label.setText('')
@@ -455,6 +456,10 @@ class MainWindow(QtWidgets.QMainWindow):
             mean_ap.append(ap)
         mean_iou = np.mean(mean_iou)
         mean_ap = np.mean(mean_ap)
+        self.avg_stat['avg_iou'].append(mean_iou)
+        total_avg_iou = np.mean(self.avg_stat['avg_iou'])
+        self.ui.iou_avg_label.setText(format_metric(total_avg_iou))
+
         self.avg_stat['dice_{}'.format(metrics['pred_cls_name'])].append(dice)
         self.avg_stat['fps'].append(metrics['fps'])
 
@@ -501,6 +506,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.total_spending_time_label.setText('{:.1f}s'.format(sum_spend))
         self.ui.fps_label.setText('{:.3f}'.format(1 / avg_fps))
 
+       
 
         ### Update Sinlge Image
         self.ui.iou_label.setText(format_metric(mean_iou))

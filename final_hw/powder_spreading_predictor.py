@@ -42,9 +42,10 @@ def compute_metric(pred: np.ndarray , gt: np.ndarray, ap_threshold = 0.5) -> dic
         pred_conf = cls_pred[:, 4]
         ious = box_iou(torch.from_numpy(gt_box), torch.from_numpy(pred_box)).numpy()
 
+        mean_iou =  np.mean(ious.max(axis=1))
+
         ious = ious.max(axis=0)
-        mean_iou = np.mean(ious)
-        true_target = ious > 0.5 # AP50
+        true_target = ious > ap_threshold # AP50
 
         TP = np.array([np.count_nonzero(true_target[:i+1]) for i in range(n_pred)])
         # FP = (np.arange(n_pred) + 1) - TP
@@ -118,13 +119,13 @@ class Powder_Spreading_Predictor(object):
 
     def predict(self, img_path: str, mask_path:str, label_path: str):
         # Start to compute spending time
-        start = time.time()
+        
         metrics = dict()
         
         # Load image
         im = load_img(img_path)
         im_h, im_w , c = im.shape
-        
+        start = time.time()
         # Predict by yolov5
         pred_bboxes, crop_imgs, crop_box_infos = self.yolov5_predictor.predict_crop(img_path)
 
@@ -153,8 +154,6 @@ class Powder_Spreading_Predictor(object):
             # Resize the crop image into the input size of UNet
             resized_crop_img = cv2.resize(crop_img, self.crop_size) 
             unet_pred = self.unet_predictor.predict(cv2.cvtColor(resized_crop_img, cv2.COLOR_BGR2RGB), to_img=True) # Unet use Pillow, so we need to convert from BGR to RGB
-
-
             resize_unet_pred = cv2.resize(unet_pred, origin_size, interpolation=cv2.INTER_NEAREST)
             
             if pred_cls_name == 'powder_uneven':

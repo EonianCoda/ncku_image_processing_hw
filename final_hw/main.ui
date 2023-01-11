@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1524</width>
-    <height>808</height>
+    <height>804</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -263,7 +263,7 @@
       <x>950</x>
       <y>470</y>
       <width>531</width>
-      <height>251</height>
+      <height>281</height>
      </rect>
     </property>
     <property name="font">
@@ -386,6 +386,43 @@
         </item>
         <item>
          <widget class="QLabel" name="ap50_scratch_label">
+          <property name="font">
+           <font>
+            <family>微軟正黑體</family>
+            <pointsize>12</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">color: blue</string>
+          </property>
+          <property name="text">
+           <string>50%</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_16">
+        <item>
+         <widget class="QLabel" name="label_20">
+          <property name="font">
+           <font>
+            <family>微軟正黑體</family>
+            <pointsize>12</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>IOU(average)：</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="iou_avg_label">
           <property name="font">
            <font>
             <family>微軟正黑體</family>
@@ -963,7 +1000,7 @@ QPushButton:disabled{
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>10</x>
