@@ -124,10 +124,11 @@ class Powder_Spreading_Predictor(object):
         
         # Load image
         im = load_img(img_path)
+        im_copy = im.copy()
         im_h, im_w , c = im.shape
         start = time.time()
         # Predict by yolov5
-        pred_bboxes, crop_imgs, crop_box_infos = self.yolov5_predictor.predict_crop(img_path)
+        pred_bboxes, crop_imgs, crop_box_infos = self.yolov5_predictor.predict_crop(im_copy)
 
         # Not found any target in image
         if not isinstance(pred_bboxes, np.ndarray):
@@ -142,7 +143,6 @@ class Powder_Spreading_Predictor(object):
         pred_cls_name = CLS_NAMES[pred_cls_idx]
         # Predict by UNet based on the result of yolov5
         pred_mask = np.zeros((im_h, im_w))
-        
         
         if pred_cls_name == 'powder_uneven':
             invalid_idx = []

@@ -84,7 +84,10 @@ class Yolov5_Predictor(object):
         self.crop_expand = crop_expand
 
     def predict_crop(self, img_path:str, mask_path:str= None):
-        im = load_img(img_path)
+        if isinstance(img_path, str):
+            im = load_img(img_path)
+        else:
+            im = img_path
         im_h, im_w, c = im.shape
         bboxes = self.predict(im)
 
